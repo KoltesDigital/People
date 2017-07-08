@@ -423,12 +423,12 @@ function concat(tags, desc) {
 			return tags.indexOf(tag) !== -1;
 		})
 	)
-		return false;
+		return null;
 
 	if (desc.includeTags)
-		tags.push.apply(tags, desc.includeTags);
+		tags.concat(desc.includeTags);
 
-	return true;
+	return tags.slice();
 }
 
 var database = [];
@@ -438,17 +438,21 @@ function randomBodyColor() {
 }
 
 heads.forEach(function(head) {
-	var tags = head.includeTags.slice();
+	var tags0 = head.includeTags.slice();
 	return loadImage(head.file, function(headImage) {
 		bodies.forEach(function(body) {
-			if (!concat(tags, body)) return;
+			var tags1 = concat(tags0, body);
+			if (!tags1) return;
 			return loadImage(body.file, function(bodyImage) {
 				skins.forEach(function(skin) {
-					if (!concat(tags, skin)) return;
+					var tags2 = concat(tags1, skin);
+					if (!tags2) return;
 					hairs.forEach(function(hair) {
-						if (!concat(tags, hair)) return;
+						var tags3 = concat(tags2, hair);
+						if (!tags3) return;
 						eyes.forEach(function(eye) {
-							if (!concat(tags, eye)) return;
+							var tags4 = concat(tags3, eye);
+							if (!tags4) return;
 
 							var c = document.createElement('canvas');
 							c.width = Math.max(headImage.width, bodyImage.width);
@@ -488,7 +492,7 @@ function afterLoad() {
 	var imagesElement = document.getElementById('images');
 	function animate() {
 		imagesElement.innerHTML = '';
-		for (var i = 0; i < 50; ++i) {
+		for (var i = 0; i < 200; ++i) {
 			var n = Math.floor(Math.random() * database.length);
 			imagesElement.appendChild(database[n].canvas);
 		}
