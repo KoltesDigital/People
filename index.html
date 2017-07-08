@@ -1,0 +1,500 @@
+<div id="images"></div>
+<style>
+body {
+	overflow: hidden;
+}
+
+#images {
+	text-align: center;
+}
+
+#images canvas {
+	display: inline-block;
+	margin: 20px;
+	image-rendering: pixelated;
+}
+</style>
+<script>
+function hsv2rgb(h, s, v) {
+	var r, g, b;
+
+	var i = Math.floor(h * 6);
+	var f = h * 6 - i;
+	var p = v * (1 - s);
+	var q = v * (1 - f * s);
+	var t = v * (1 - (1 - f) * s);
+
+	switch (i % 6) {
+		case 0: r = v, g = t, b = p; break;
+		case 1: r = q, g = v, b = p; break;
+		case 2: r = p, g = v, b = t; break;
+		case 3: r = p, g = q, b = v; break;
+		case 4: r = t, g = p, b = v; break;
+		case 5: r = v, g = p, b = q; break;
+	}
+
+	return [ r * 255, g * 255, b * 255 ];
+}
+
+function bin2rgb(bin) {
+	var r = bin >> 16 & 0xFF;
+	var g = bin >> 8 & 0xFF;
+	var b = bin & 0xFF;
+	return [r,g,b];
+}
+
+function rgb2bin(r,g,b) {
+	return r << 16 | g << 8 | b;
+}
+
+function colorEquals(data, i, color) {
+	return data[i] === color[0] && data[i + 1] === color[1] && data[i + 2] == color[2];
+}
+
+var scale = 8;
+
+var Colors = {
+	Skin: bin2rgb(0xffcc66),
+	Hairs: bin2rgb(0xff0000),
+	Eyes: bin2rgb(0x00ff00),
+	Teeshirt: bin2rgb(0xff0000),
+	Pants: bin2rgb(0xffff00),
+	Shoes: bin2rgb(0x00ff00),
+	Tool1: bin2rgb(0x00ffff),
+	Tool2: bin2rgb(0x0000ff),
+};
+
+var skins = [
+	{
+		color: bin2rgb(0xffcc99),
+		includeTags: [],
+	},
+	{
+		color: bin2rgb(0xffcc66),
+		includeTags: [],
+	},
+	{
+		color: bin2rgb(0xffb039),
+		includeTags: [],
+	},
+	{
+		color: bin2rgb(0x996633),
+		includeTags: [],
+	},
+	{
+		color: bin2rgb(0x663300),
+	},
+];
+
+var hairs = [
+	{
+		color: bin2rgb(0xdab587),
+		includeTags: [],
+		excludeTags: [
+			"bald",
+		],
+	},
+	{
+		color: bin2rgb(0xb2947a),
+		includeTags: [],
+		excludeTags: [
+			"bald",
+		],
+	},
+	{
+		color: bin2rgb(0x835a36),
+		includeTags: [],
+		excludeTags: [
+			"bald",
+		],
+	},
+	{
+		color: bin2rgb(0x48302a),
+		includeTags: [],
+		excludeTags: [
+			"bald",
+		],
+	},
+	{
+		color: bin2rgb(0x953d2f),
+		includeTags: [],
+		excludeTags: [
+			"bald",
+		],
+	},
+	{
+		color: bin2rgb(0xcb6c2a),
+		includeTags: [
+			"female",
+		],
+		excludeTags: [
+			"bald",
+		],
+	},
+	{
+		color: bin2rgb(0x7b2d57),
+		includeTags: [
+			"female",
+		],
+		excludeTags: [
+			"bald",
+			"male",
+		],
+	},
+	{
+		color: bin2rgb(0xddd4d1),
+		includeTags: [
+			"old",
+		],
+	},
+];
+
+var eyes = [
+	{
+		color: bin2rgb(0x0f0d0c),
+		includeTags: [],
+	},
+	{
+		color: bin2rgb(0x67371e),
+		includeTags: [],
+	},
+	{
+		color: bin2rgb(0xa26f33),
+		includeTags: [],
+	},
+	{
+		color: bin2rgb(0x555212),
+		includeTags: [],
+	},
+	{
+		color: bin2rgb(0x5e8390),
+		includeTags: [],
+	},
+];
+
+var heads = [
+	{
+		file: "head-00.png",
+		includeTags: [
+			"male",
+		],
+		excludeTags: [
+			"female",
+		],
+	},
+	{
+		file: "head-01.png",
+		includeTags: [
+			"male",
+		],
+		excludeTags: [
+			"female",
+		],
+	},
+	{
+		file: "head-02.png",
+		includeTags: [
+			"male",
+		],
+		excludeTags: [
+			"female",
+		],
+	},
+	{
+		file: "head-03.png",
+		includeTags: [
+			"bald",
+			"male",
+		],
+		excludeTags: [
+			"female",
+		],
+	},
+	{
+		file: "head-04.png",
+		includeTags: [
+			"male",
+			"old",
+		],
+		excludeTags: [
+			"female",
+			"young",
+		],
+	},
+	{
+		file: "head-05.png",
+		includeTags: [
+			"female",
+		],
+		excludeTags: [
+			"male",
+		],
+	},
+	{
+		file: "head-06.png",
+		includeTags: [
+			"female",
+		],
+		excludeTags: [
+			"male",
+		],
+	},
+	{
+		file: "head-07.png",
+		includeTags: [
+			"female",
+		],
+		excludeTags: [
+			"male",
+		],
+	},
+	{
+		file: "head-08.png",
+		includeTags: [
+			"female",
+		],
+		excludeTags: [
+			"male",
+		],
+	},
+];
+
+var bodies = [
+	{
+		file: "body-00.png",
+		includeTags: [
+		],
+		excludeTags: [
+		],
+	},
+	{
+		file: "body-01.png",
+		includeTags: [
+			"male",
+			"small",
+		],
+		excludeTags: [
+			"female",
+			"tall",
+		],
+	},
+	{
+		file: "body-02.png",
+		includeTags: [
+			"male",
+			"tall",
+		],
+		excludeTags: [
+			"female",
+			"small",
+		],
+	},
+	{
+		file: "body-03.png",
+		includeTags: [
+			"female",
+		],
+		excludeTags: [
+			"male",
+		],
+	},
+	{
+		file: "body-04.png",
+		includeTags: [
+			"female",
+			"thin",
+		],
+		excludeTags: [
+			"male",
+			"fat",
+		],
+	},
+	{
+		file: "body-05.png",
+		includeTags: [
+			"female",
+			"small",
+		],
+		excludeTags: [
+			"male",
+			"tall",
+		],
+	},
+	{
+		file: "body-06.png",
+		includeTags: [
+			"female",
+			"tall",
+		],
+		excludeTags: [
+			"male",
+			"small",
+		],
+	},
+	{
+		file: "body-07.png",
+		includeTags: [
+			"fat",
+		],
+		excludeTags: [
+			"thin",
+		],
+	},
+	{
+		file: "body-08.png",
+		includeTags: [
+			"disabled",
+		],
+		excludeTags: [
+		],
+	},
+	{
+		file: "body-09.png",
+		includeTags: [
+			"disabled",
+			"old",
+		],
+		excludeTags: [
+			"young",
+		],
+	},
+	{
+		file: "body-10.png",
+		includeTags: [
+			"disabled",
+		],
+		excludeTags: [
+		],
+	},
+];
+
+var imagesToLoad = 0;
+var imagesLoaded = 0;
+function loadImage(source, callback) {
+	++imagesToLoad;
+	var img = new Image();
+	img.onload = function() {
+		++imagesLoaded;
+
+		var c = document.createElement('canvas');
+		c.width = img.width;
+		c.height = img.height;
+		var ctx = c.getContext('2d');
+		ctx.drawImage(img, 0, 0);
+		callback(ctx.getImageData(0,0,c.width,c.height));
+
+		if (imagesLoaded === imagesToLoad) {
+			return afterLoad();
+		}
+	};
+	img.src = source;
+}
+
+function copy(source, destination, dx, dy, mappings) {
+	var i = 0;
+	for (var y = 0; y < source.height; ++y) {
+		for (var x = 0; x < source.width; ++x) {
+			if (source.data[i + 3] > 0) {
+				var o = (destination.width * (dy + y) + (dx + x)) * 4;
+				if (!mappings.some(function(mapping) {
+					if (colorEquals(source.data, i, mapping[0])) {
+						var c = mapping[1];
+						destination.data[o] = c[0];
+						destination.data[o+1] = c[1];
+						destination.data[o+2] = c[2];
+						destination.data[o+3] = 255;
+						return true;
+					}
+				})) {
+					destination.data[o] = source.data[i];
+					destination.data[o+1] = source.data[i+1];
+					destination.data[o+2] = source.data[i+2];
+					destination.data[o+3] = 255;
+				}
+			}
+			i += 4;
+		}
+	}
+}
+
+function concat(tags, desc) {
+	if (desc.excludeTags &&
+		desc.excludeTags.some(function(tag) {
+			return tags.indexOf(tag) !== -1;
+		})
+	)
+		return false;
+
+	if (desc.includeTags)
+		tags.push.apply(tags, desc.includeTags);
+
+	return true;
+}
+
+var database = [];
+
+function randomBodyColor() {
+	return hsv2rgb(Math.random(), .6 + .2 * Math.random(), .8 + .2 * Math.random());
+}
+
+heads.forEach(function(head) {
+	var tags = head.includeTags.slice();
+	return loadImage(head.file, function(headImage) {
+		bodies.forEach(function(body) {
+			if (!concat(tags, body)) return;
+			return loadImage(body.file, function(bodyImage) {
+				skins.forEach(function(skin) {
+					if (!concat(tags, skin)) return;
+					hairs.forEach(function(hair) {
+						if (!concat(tags, hair)) return;
+						eyes.forEach(function(eye) {
+							if (!concat(tags, eye)) return;
+
+							var c = document.createElement('canvas');
+							c.width = Math.max(headImage.width, bodyImage.width);
+							c.height = 9 + bodyImage.height;
+							c.style.width = (c.width * scale) + 'px';
+							c.style.height = (c.height * scale) + 'px';
+
+							var ctx = c.getContext('2d');
+							var data = ctx.createImageData(c.width, c.height);
+							copy(bodyImage, data, (c.width - bodyImage.width) / 2, 9, [
+								[Colors.Skin, skin.color],
+								[Colors.Teeshirt, randomBodyColor()],
+								[Colors.Pants, randomBodyColor()],
+								[Colors.Shoes, randomBodyColor()],
+								[Colors.Tool1, randomBodyColor()],
+								[Colors.Tool2, randomBodyColor()],
+							]);
+							copy(headImage, data, (c.width - headImage.width) / 2, 0, [
+								[Colors.Skin, skin.color],
+								[Colors.Hairs, hair.color],
+								[Colors.Eyes, eye.color],
+							]);
+							ctx.putImageData(data, 0, 0);
+
+							database.push({
+								canvas: c,
+							});
+						});
+					});
+				});
+			});
+		});
+	});
+});
+
+function afterLoad() {
+	var imagesElement = document.getElementById('images');
+	function animate() {
+		imagesElement.innerHTML = '';
+		for (var i = 0; i < 50; ++i) {
+			var n = Math.floor(Math.random() * database.length);
+			imagesElement.appendChild(database[n].canvas);
+		}
+	}
+
+	animate();
+	setInterval(animate, 200);
+}
+</script>
