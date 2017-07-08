@@ -426,7 +426,7 @@ function concat(tags, desc) {
 		return null;
 
 	if (desc.includeTags)
-		tags.concat(desc.includeTags);
+		return tags.concat(desc.includeTags);
 
 	return tags.slice();
 }
